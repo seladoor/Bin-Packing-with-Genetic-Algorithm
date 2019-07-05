@@ -1,0 +1,213 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Sconosciuto </title></head><body>
+<h1 id="rectpack">rectpack <a href="https://travis-ci.org/secnot/rectpack"><img alt="Build Status" src="https://travis-ci.org/secnot/rectpack.svg?branch=master"/></a></h1>
+<p>Rectpack is a collection of heuristic algorithms for solving the 2D knapsack problem,
+also known as the bin packing problem. In essence packing a set of rectangles into the 
+smallest number of bins.</p>
+<p><img alt="alt tag" src="maxrects-1.png"/></p>
+<h2 id="installation">Installation</h2>
+<p>Download the package or clone the repository, and then install with:</p>
+<p><code>bash
+python setup.py install</code></p>
+<p>or use pypi:</p>
+<p><code>bash
+pip install rectpack</code></p>
+<h2 id="basic-usage">Basic Usage</h2>
+<p>Packing rectangles into a number of bins is very simple:</p>
+<p>```python
+from rectpack import newPacker</p>
+<p>rectangles = [(100, 30), (40, 60), (30, 30),(70, 70), (100, 50), (30, 30)]
+bins = [(300, 450), (80, 40), (200, 150)]</p>
+<p>packer = newPacker()</p>
+<h1 id="add-the-rectangles-to-packing-queue">Add the rectangles to packing queue</h1>
+<p>for r in rectangles:
+    packer.add_rect(*r)</p>
+<h1 id="add-the-bins-where-the-rectangles-will-be-placed">Add the bins where the rectangles will be placed</h1>
+<p>for b in bins:
+    packer.add_bin(*b)</p>
+<h1 id="start-packing">Start packing</h1>
+<p>packer.pack()
+```</p>
+<p>Once the rectangles have been packed the results can be accessed individually</p>
+<p>```python</p>
+<h1 id="obtain-number-of-bins-used-for-packing">Obtain number of bins used for packing</h1>
+<p>nbins = len(packer)</p>
+<h1 id="index-first-bin">Index first bin</h1>
+<p>abin = packer[0]</p>
+<h1 id="bin-dimmensions-bins-can-be-reordered-during-packing">Bin dimmensions (bins can be reordered during packing)</h1>
+<p>width, height = abin.width, abin.height</p>
+<h1 id="number-of-rectangles-packed-into-first-bin">Number of rectangles packed into first bin</h1>
+<p>nrect = len(packer[0])</p>
+<h1 id="second-bin-first-rectangle">Second bin first rectangle</h1>
+<p>rect = packer[1][0]</p>
+<h1 id="rect-is-a-rectangle-object">rect is a Rectangle object</h1>
+<p>x = rect.x # rectangle bottom-left x coordinate
+y = rect.y # rectangle bottom-left y coordinate
+w = rect.width
+h = rect.height
+```</p>
+<p>looping over all of them</p>
+<p><code>python
+for abin in packer:
+  print(abin.bid) # Bin id if it has one
+  for rect in abin:
+    print(rect)</code></p>
+<p>or using <strong>rect_list()</strong></p>
+<p>```python</p>
+<h1 id="full-rectangle-list">Full rectangle list</h1>
+<p>all_rects = packer.rect_list()
+for rect in all_rects:
+    b, x, y, w, h, rid = rect</p>
+<h1 id="b-bin-index">b - Bin index</h1>
+<h1 id="x-rectangle-bottom-left-corner-x-coordinate">x - Rectangle bottom-left corner x coordinate</h1>
+<h1 id="y-rectangle-bottom-left-corner-y-coordinate">y - Rectangle bottom-left corner y coordinate</h1>
+<h1 id="w-rectangle-width">w - Rectangle width</h1>
+<h1 id="h-rectangle-height">h - Rectangle height</h1>
+<h1 id="rid-user-asigned-rectangle-id-or-none">rid - User asigned rectangle id or None</h1>
+<p>```</p>
+<p>Lastly all the dimmension (bins and rectangles) must be integers or decimals to avoid
+collisions caused by floating point rounding. If your data is floating point use 
+float2dec to convert float values to decimals (see float below)</p>
+<h2 id="api">API</h2>
+<p>A more detailed description of API calls:</p>
+<ul>
+<li>class <strong>newPacker</strong>([, mode][, bin_algo][, pack_algo][, sort_algo][, rotation])<br/>
+  Return a new packer object</li>
+<li>mode: Mode of operations<ul>
+<li>PackingMode.Offline: The set of rectangles is known beforehand, packing won't
+start until <em>pack()</em> is called.</li>
+<li>PackingMode.Online: The rectangles are unknown at the beginning of the job, and
+will be packed as soon as they are added.</li>
+</ul>
+</li>
+<li>bin_algo: Bin selection heuristic<ul>
+<li>PackingBin.BNF: (Bin Next Fit) If a rectangle doesn't fit into the current bin,
+close it and try next one.</li>
+<li>PackingBin.BFF: (Bin First Fit) Pack rectangle into the first bin it fits (without closing)</li>
+<li>PackingBin.BBF: (Bin Best Fit) Pack rectangle into the bin that gives best fitness.</li>
+<li>PackingBin.Global: For each bin pack the rectangle with the best fitness until it is full,
+then continue with next bin.</li>
+</ul>
+</li>
+<li>pack_algo: One of the supported packing algorithms (see list below)</li>
+<li>sort_algo: Rectangle sort order before packing (only for offline mode)<ul>
+<li>SORT_NONE: Rectangles left unsorted.</li>
+<li>SORT_AREA: Sort by descending area.</li>
+<li>SORT_PERI: Sort by descending perimeter.</li>
+<li>SORT_DIFF: Sort by difference of rectangle sides.</li>
+<li>SORT_SSIDE: Sort by shortest side.</li>
+<li>SORT_LSIDE: Sort by longest side.</li>
+<li>SORT_RATIO: Sort by ration between sides.</li>
+</ul>
+</li>
+<li>
+<p>rotation: Enable or disable rectangle rotation.</p>
+</li>
+<li>
+<p>packer.<strong>add_bin</strong>(width, height[, count][, bid])<br/>
+  Add empty bin or bins to a packer</p>
+</li>
+<li>width: Bin width</li>
+<li>height: Bin height</li>
+<li>count: Number of bins to add, 1 by default. It's possible to add infinie bins
+  with <em>count=float("inf")</em></li>
+<li>
+<p>bid: Optional bin identifier</p>
+</li>
+<li>
+<p>packer.<strong>add_rect</strong>(width, height[, rid])<br/>
+  Add rectangle to packing queue</p>
+</li>
+<li>width: Rectangle width</li>
+<li>height: Rectangle height</li>
+<li>
+<p>rid: User assigned rectangle id</p>
+</li>
+<li>
+<p>packer.<strong>pack</strong>():<br/>
+  Starts packing process (only for offline mode).</p>
+</li>
+<li>
+<p>packer.<strong>rect_list</strong>():<br/>
+  Returns the list of packed rectangles, each one represented by the tuple (b, x, y, w, h, rid) where:</p>
+</li>
+<li>b: Index for the bin the rectangle was packed into</li>
+<li>x: X coordinate for the rectangle bottom-left corner</li>
+<li>y: Y coordinate for the rectangle bottom-left corner</li>
+<li>w: Rectangle width</li>
+<li>h: Rectangle height</li>
+<li>rid: User provided id or None</li>
+</ul>
+<h2 id="supported-algorithms">Supported Algorithms</h2>
+<p>This library implements three of the algorithms described in [1] Skyline, Maxrects, 
+and Guillotine, with the following variants:</p>
+<ul>
+<li>MaxRects  </li>
+<li>MaxRectsBl</li>
+<li>MaxRectsBssf</li>
+<li>MaxRectsBaf</li>
+<li>
+<p>MaxRectsBlsf</p>
+</li>
+<li>
+<p>Skyline  </p>
+</li>
+<li>SkylineBl</li>
+<li>SkylineBlWm</li>
+<li>SkylineMwf</li>
+<li>SkylineMwfl</li>
+<li>SkylineMwfWm</li>
+<li>
+<p>SkylineMwflWm</p>
+</li>
+<li>
+<p>Guillotine  </p>
+</li>
+<li>GuillotineBssfSas</li>
+<li>GuillotineBssfLas</li>
+<li>GuillotineBssfSlas</li>
+<li>GuillotineBssfLlas</li>
+<li>GuillotineBssfMaxas</li>
+<li>GuillotineBssfMinas</li>
+<li>GuillotineBlsfSas</li>
+<li>GuillotineBlsfLas</li>
+<li>GuillotineBlsfSlas</li>
+<li>GuillotineBlsfLlas</li>
+<li>GuillotineBlsfMaxas</li>
+<li>GuillotineBlsfMinas</li>
+<li>GuillotineBafSas</li>
+<li>GuillotineBafLas</li>
+<li>GuillotineBafSlas</li>
+<li>GuillotineBafLlas</li>
+<li>GuillotineBafMaxas</li>
+<li>GuillotineBafMinas</li>
+</ul>
+<p>I recommend to use the default algorithm unless the packing is too slow, in that 
+case switch to one of the Guillotine variants for example <em>GuillotineBssfSas</em>. 
+You can learn more about the algorithms in [1].</p>
+<h2 id="testing">Testing</h2>
+<p>Rectpack is thoroughly tested, run the tests with:</p>
+<p><code>bash
+python setup.py test</code></p>
+<p>or</p>
+<p><code>bash
+python -m unittest discover</code></p>
+<h2 id="float">Float</h2>
+<p>If you need to use floats just convert them to fixed-point using a Decimal type,
+be carefull rounding up so the actual rectangle size is always smaller than
+the conversion. Rectpack provides helper funcion <strong>float2dec</strong> for this task,
+it accepts a number and the number of decimals to round to, and returns
+the rounded Decimal.</p>
+<p>```python
+    from rectpack import float2dec, newPacker</p>
+<pre><code>float_rects = [...]
+dec_rects = [(float2dec(r[0], 3), float2dec(r[1], 3)) for r in float_rects]
+
+p = newPacker()
+...
+</code></pre>
+<p>```</p>
+<h2 id="references">References</h2>
+<p>[1] Jukka Jylang - A Thousand Ways to Pack the Bin - A Practical Approach to Two-Dimensional
+Rectangle Bin Packing (2010)</p>
+<p>[2] Huang, E. Korf - Optimal Rectangle Packing: An Absolute Placement Approach (2013)</p>
+</body></html>
